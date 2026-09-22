@@ -97,8 +97,13 @@ class FeatureFlagConfigModelValidationJob(
         if not isinstance(model, config_models.FeatureFlagConfigModel):
             return
 
-        for user_group_id in model.user_group_ids:
-            if user_models.UserGroupModel.get_by_id(user_group_id) is None:
+        user_group_models = user_models.UserGroupModel.get_multi(
+            model.user_group_ids
+        )
+        for user_group_id, user_group_model in zip(
+            model.user_group_ids, user_group_models
+        ):
+            if user_group_model is None:
                 yield base_validation_errors.ModelRelationshipError(
                     id_property=model_property.ModelProperty(
                         config_models.FeatureFlagConfigModel,
